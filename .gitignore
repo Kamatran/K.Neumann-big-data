@@ -1,0 +1,20 @@
+# Data - never committed. A single `git add .` would otherwise push hundreds of MB.
+*.parquet
+*.csv
+data/*
+!data/.gitkeep
+
+# Python environments and artefacts
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Local configuration (passwords, tokens)
+.env
+
+# Container data written to disk by Docker
+volumes/
+minio-data/
+
+# Note: out/ is NOT ignored - several tasks hand in their results as files in out/.
