@@ -1,0 +1,22 @@
+# W1, session 2 - rewrite last week's `docker run` as a stack description.
+#
+# You already ran MinIO by hand, with -p, -v and -e on the command line. The same
+# service is described here - but three things are missing. Fill in the gaps
+# marked with TODO, then compare: which of them is about reaching the service,
+# which about keeping its data, and which about protecting the rest of the machine.
+services:
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: student
+      MINIO_ROOT_PASSWORD: student123
+
+    # TODO 2: give MinIO a volume, so that objects survive `docker compose down`.
+    #         MinIO stores its data under /data inside the container.
+    volumes:
+      - ./minio-data:/data:z
+
+    # TODO 3: cap how much memory this container may take, at 512 MB.
+    #         One line. Check the result in the LIMIT column of `docker stats`.
+    mem_limit: 512m

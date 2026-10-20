@@ -1,0 +1,10 @@
+services:
+  serwer:
+    image: python:3.11-slim
+    command: python -m http.server 8000
+
+  klient:
+    image: python:3.11-slim
+    depends_on:
+      - serwer
+    command: sh -c "sleep 3 && python -c 'import urllib.request as u; print(\"status:\", u.urlopen(\"http://serwer:8000\").status)'"
