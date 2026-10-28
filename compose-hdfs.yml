@@ -1,0 +1,70 @@
+# W3: the storage layer of Hadoop only - one NameNode and three DataNodes, no YARN.
+# W3 is about where the data lives; YARN comes back in W4, when we compute.
+# A separate project name, so this cluster does not mix with the W2 one (compose-hadoop.yml).
+name: bd-hdfs
+
+x-hdfs-env: &hdfs-env
+  CORE-SITE.XML_fs.defaultFS: hdfs://namenode:9000
+  # replication=2 with 3 datanodes: killing one still leaves somewhere to re-replicate
+  HDFS-SITE.XML_dfs.replication: "2"
+  # 32 MB instead of the default 128 MB, so a ~50 MB file splits into >1 block
+  HDFS-SITE.XML_dfs.blocksize: "33554432"
+  # default is 300000 ms -> dead node detected after ~10.5 min, unusable in class
+  HDFS-SITE.XML_dfs.namenode.heartbeat.recheck-interval: "10000"
+  HDFS-SITE.XML_dfs.namenode.name.dir: /data/name
+  HDFS-SITE.XML_dfs.datanode.data.dir: /data/dn
+
+services:
+  namenode:
+    build: { context: ., dockerfile: Dockerfile.hadoop }
+    image: bd-hadoop:3.4.3
+    hostname: namenode
+    command: ["hdfs", "namenode"]
+    ports: ["9870:9870"]
+    environment:
+      <<: *hdfs-env
+      ENSURE_NAMENODE_DIR: /data/name
+    volumes:
+      - nn:/data:z
+      # the yearly data set and your scripts, read-only, for `hdfs dfs -put` run inside the cluster
+      - ./data:/mnt/host:ro,z
+      - ./scripts:/scripts:ro,z
+
+  datanode-1:
+    image: bd-hadoop:3.4.3
+    hostname: datanode-1        # readable names in the web interface instead of container ids
+    command: ["hdfs", "datanode"]
+    environment: *hdfs-env
+    volumes: ["dn1:/data"]
+  datanode-2:
+    image: bd-hadoop:3.4.3
+    hostname: datanode-2
+    command: ["hdfs", "datanode"]
+    environment: *hdfs-env
+    volumes: ["dn2:/data"]
+  datanode-3:
+    image: bd-hadoop:3.4.3
+    hostname: datanode-3
+    command: ["hdfs", "datanode"]
+    environment: *hdfs-env
+    volumes: ["dn3:/data"]
+
+  # A program OUTSIDE the cluster that uses HDFS only as storage: it talks to the NameNode over
+  # HTTP (WebHDFS), see scripts/hdfs_client.py. Image from W2 (Dockerfile: Python, pandas, pyarrow).
+  # The profile keeps it out of `up`; run it on demand:
+  #   docker compose -f compose-hdfs.yml run --rm client python /scripts/hdfs_client.py get /taxi/yellow_tripdata_2024-01.parquet
+  client:
+    build: { context: ., dockerfile: Dockerfile }
+    image: oom-lab:1
+    profiles: ["client"]
+    volumes:
+      - ./data:/data:ro,z
+      - ./scripts:/scripts:ro,z
+
+# Named volumes: they inherit the ownership of /data from the image (uid 1000), see Dockerfile.hadoop.
+# Wipe them with:  docker compose -f compose-hdfs.yml down -v
+volumes:
+  nn:
+  dn1:
+  dn2:
+  dn3:

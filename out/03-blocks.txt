@@ -1,0 +1,14 @@
+path        : /taxi/yellow_tripdata_2024-01.parquet
+size        : 49,961,641 B
+files       : 1
+blocks      : 2
+replication : 2.0
+total space (all replicas) : 99,923,282 B
+map tasks                  : 2
+path        : /taxi
+size        : 693,001,713 B
+files       : 12
+blocks      : 24
+replication : 2.0
+total space (all replicas) : 1,386,003,426 B
+map tasks                  : 24

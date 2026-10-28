@@ -1,0 +1,29 @@
+== creating target directory in HDFS ==
+== uploading files ==
+  -> yellow_tripdata_2024-01.parquet
+  -> yellow_tripdata_2024-02.parquet
+  -> yellow_tripdata_2024-03.parquet
+  -> yellow_tripdata_2024-04.parquet
+  -> yellow_tripdata_2024-05.parquet
+  -> yellow_tripdata_2024-06.parquet
+  -> yellow_tripdata_2024-07.parquet
+  -> yellow_tripdata_2024-08.parquet
+  -> yellow_tripdata_2024-09.parquet
+  -> yellow_tripdata_2024-10.parquet
+  -> yellow_tripdata_2024-11.parquet
+  -> yellow_tripdata_2024-12.parquet
+== verification ==
+Found 12 items
+-rw-r--r--   2 hadoop supergroup   49961641 2026-10-28 15:06 /taxi/yellow_tripdata_2024-01.parquet
+-rw-r--r--   2 hadoop supergroup   50349284 2026-10-28 15:06 /taxi/yellow_tripdata_2024-02.parquet
+-rw-r--r--   2 hadoop supergroup   60078280 2026-10-28 15:06 /taxi/yellow_tripdata_2024-03.parquet
+-rw-r--r--   2 hadoop supergroup   59133625 2026-10-28 15:06 /taxi/yellow_tripdata_2024-04.parquet
+-rw-r--r--   2 hadoop supergroup   62553128 2026-10-28 15:06 /taxi/yellow_tripdata_2024-05.parquet
+-rw-r--r--   2 hadoop supergroup   59859922 2026-10-28 15:06 /taxi/yellow_tripdata_2024-06.parquet
+-rw-r--r--   2 hadoop supergroup   52299432 2026-10-28 15:06 /taxi/yellow_tripdata_2024-07.parquet
+-rw-r--r--   2 hadoop supergroup   51067350 2026-10-28 15:06 /taxi/yellow_tripdata_2024-08.parquet
+-rw-r--r--   2 hadoop supergroup   61170186 2026-10-28 15:06 /taxi/yellow_tripdata_2024-09.parquet
+-rw-r--r--   2 hadoop supergroup   64346071 2026-10-28 15:06 /taxi/yellow_tripdata_2024-10.parquet
+-rw-r--r--   2 hadoop supergroup   60658709 2026-10-28 15:06 /taxi/yellow_tripdata_2024-11.parquet
+-rw-r--r--   2 hadoop supergroup   61524085 2026-10-28 15:06 /taxi/yellow_tripdata_2024-12.parquet
+Total files in /taxi: 12

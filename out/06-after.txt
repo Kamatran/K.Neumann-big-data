@@ -1,0 +1,7 @@
+path        : /taxi
+size        : 693,001,713 B
+files       : 12
+blocks      : 24
+replication : 2.0
+total space (all replicas) : 1,386,003,426 B
+map tasks                  : 24
