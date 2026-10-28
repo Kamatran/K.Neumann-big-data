@@ -1,0 +1,17 @@
+# W2 - the memory-limited container used for the OOM experiment.
+#
+# The 1280 MB limit is MEASURED, not guessed. The usable window is bounded on
+# both sides: below ~1150 MB Parquet also fails, above ~1380 MiB the CSV stops
+# failing. Raising the limit "to be safe" breaks the experiment.
+services:
+  oom-lab:
+    build: .
+    image: oom-lab:1
+    mem_limit: 1280m
+    memswap_limit: 1280m        # equal to mem_limit => swap disabled
+    volumes:
+      - ./data:/data:z
+      - ./src:/src:z
+    working_dir: /src
+    # run one script at a time, e.g.:
+    #   docker compose -f compose-oom.yml run --rm oom-lab python mean_csv.py

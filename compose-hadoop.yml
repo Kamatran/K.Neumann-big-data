@@ -1,0 +1,71 @@
+# Hadoop cluster for W3/W4 - deliberately small, tuned for teaching.
+x-hadoop-env: &hadoop-env
+  CORE-SITE.XML_fs.defaultFS: hdfs://namenode:9000
+  # replication=2 with 3 datanodes: killing one still leaves somewhere to re-replicate
+  HDFS-SITE.XML_dfs.replication: "2"
+  # 32 MB instead of the default 128 MB, so a ~50 MB file splits into >1 block
+  HDFS-SITE.XML_dfs.blocksize: "33554432"
+  # default is 300000 ms -> dead node detected after ~10.5 min, unusable in class
+  HDFS-SITE.XML_dfs.namenode.heartbeat.recheck-interval: "10000"
+  HDFS-SITE.XML_dfs.namenode.name.dir: /data/name
+  HDFS-SITE.XML_dfs.datanode.data.dir: /data/dn
+  YARN-SITE.XML_yarn.resourcemanager.hostname: resourcemanager
+  # without this MapReduce runs in a single local JVM and never touches YARN
+  MAPRED-SITE.XML_mapreduce.framework.name: yarn
+  YARN-SITE.XML_yarn.nodemanager.aux-services: mapreduce_shuffle
+  MAPRED-SITE.XML_yarn.app.mapreduce.am.env: HADOOP_MAPRED_HOME=/opt/hadoop
+  MAPRED-SITE.XML_mapreduce.map.env: HADOOP_MAPRED_HOME=/opt/hadoop
+  MAPRED-SITE.XML_mapreduce.reduce.env: HADOOP_MAPRED_HOME=/opt/hadoop
+
+services:
+  namenode:
+    build: { context: ., dockerfile: Dockerfile.hadoop }
+    image: bd-hadoop:3.4.3
+    hostname: namenode
+    command: ["hdfs", "namenode"]
+    ports: ["9870:9870"]
+    environment:
+      <<: *hadoop-env
+      ENSURE_NAMENODE_DIR: /data/name
+    volumes:
+      - nn:/data
+      - ./data:/mnt/host:ro
+
+  datanode-1:
+    image: bd-hadoop:3.4.3
+    command: ["hdfs", "datanode"]
+    environment: *hadoop-env
+    volumes: ["dn1:/data"]
+  datanode-2:
+    image: bd-hadoop:3.4.3
+    command: ["hdfs", "datanode"]
+    environment: *hadoop-env
+    volumes: ["dn2:/data"]
+  datanode-3:
+    image: bd-hadoop:3.4.3
+    command: ["hdfs", "datanode"]
+    environment: *hadoop-env
+    volumes: ["dn3:/data"]
+
+  resourcemanager:
+    image: bd-hadoop:3.4.3
+    hostname: resourcemanager
+    command: ["yarn", "resourcemanager"]
+    ports: ["8088:8088"]
+    environment: *hadoop-env
+
+  nodemanager:
+    image: bd-hadoop:3.4.3
+    command: ["yarn", "nodemanager"]
+    environment: *hadoop-env
+
+# Named volumes, not bind mounts. A bind-mounted host directory is created by
+# Docker as root, while these images run as uid 1000 / gid 100 - the NameNode
+# then cannot create /data/name/current and the whole cluster dies on startup.
+# Named volumes inherit ownership from the image, so this works with no chown.
+# Wipe them with:  docker compose -f compose-hadoop.yml down -v
+volumes:
+  nn:
+  dn1:
+  dn2:
+  dn3:

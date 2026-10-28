@@ -1,0 +1,7 @@
+/src/mean_rows.py:10: DtypeWarning: Columns (0: store_and_fwd_flag) have mixed types. Specify dtype option on import or set low_memory=False.
+  df = pd.read_csv("/data/yellow_tripdata_2024-01.csv")
+Lading entire file
+Number of rows: 2964624
+Memory usage: 566473732 bytes, 540.2314491271973 MB
+exit=0
+peak=1458753536
