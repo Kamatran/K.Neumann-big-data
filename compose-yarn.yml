@@ -1,0 +1,67 @@
+# W4: the compute layer of Hadoop (YARN), added ON TOP of the W3 storage cluster.
+# This file is not used alone. Always pass both files, in this order:
+#   docker compose -f compose-hdfs.yml -f compose-yarn.yml up -d
+# Same project (bd-hdfs), same volumes: the year you loaded into HDFS in W3 is still there.
+
+x-yarn-env: &yarn-env
+  CORE-SITE.XML_fs.defaultFS: hdfs://namenode:9000
+  YARN-SITE.XML_yarn.resourcemanager.hostname: resourcemanager
+  # the service that hands map output over to the reducers (the shuffle)
+  YARN-SITE.XML_yarn.nodemanager.aux-services: mapreduce_shuffle
+  # task logs are copied to HDFS when the job ends, so `yarn logs` shows your Python traceback
+  YARN-SITE.XML_yarn.log-aggregation-enable: "true"
+  # without this MapReduce runs in a single local process and never reaches YARN
+  MAPRED-SITE.XML_mapreduce.framework.name: yarn
+  MAPRED-SITE.XML_yarn.app.mapreduce.am.env: HADOOP_MAPRED_HOME=/opt/hadoop
+  MAPRED-SITE.XML_mapreduce.map.env: HADOOP_MAPRED_HOME=/opt/hadoop
+  MAPRED-SITE.XML_mapreduce.reduce.env: HADOOP_MAPRED_HOME=/opt/hadoop
+
+# Capacity of one compute node: 3 GB and 2 cores. Three nodes = 9 GB / 6 cores for the whole cluster.
+x-nm-env: &nm-env
+  <<: *yarn-env
+  YARN-SITE.XML_yarn.nodemanager.resource.memory-mb: "3072"
+  YARN-SITE.XML_yarn.nodemanager.resource.cpu-vcores: "2"
+
+services:
+  # We submit jobs from the namenode container, as we ran `hdfs` there in W3.
+  # It gets the MapReduce settings and your src/ directory (as /src).
+  namenode:
+    environment: *yarn-env
+    volumes:
+      - ./src:/src:ro,z
+
+  # Manages the CPU and memory of the whole cluster; web interface on localhost:8088.
+  resourcemanager:
+    image: bd-hadoop:3.4.3
+    hostname: resourcemanager
+    command: ["yarn", "resourcemanager"]
+    ports: ["8088:8088"]
+    environment: *yarn-env
+
+  # One compute node per data node. network_mode makes the nodemanager share the network
+  # of its datanode, so YARN and HDFS see them as ONE machine. That is what lets a map
+  # task run where its block lies. With separate containers, "Data-local map tasks" is 0.
+  nodemanager-1:
+    image: bd-hadoop:3.4.3
+    command: ["yarn", "nodemanager"]
+    environment: *nm-env
+    network_mode: "service:datanode-1"
+    depends_on: [datanode-1, resourcemanager]
+  nodemanager-2:
+    image: bd-hadoop:3.4.3
+    command: ["yarn", "nodemanager"]
+    environment: *nm-env
+    network_mode: "service:datanode-2"
+    depends_on: [datanode-2, resourcemanager]
+  nodemanager-3:
+    image: bd-hadoop:3.4.3
+    command: ["yarn", "nodemanager"]
+    environment: *nm-env
+    network_mode: "service:datanode-3"
+    depends_on: [datanode-3, resourcemanager]
+
+  # The W3 program outside the cluster (image oom-lab:1, with pandas) also sees src/ and out/.
+  client:
+    volumes:
+      - ./src:/src:ro,z
+      - ./out:/out:z
